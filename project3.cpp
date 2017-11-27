@@ -11,81 +11,122 @@
 using namespace std; 
 
 //Converts 'string' into lowercase using std::tolower()
-string toLowerCase(string &str) {
+string toLowerCase(string &str) 
+{
 	int length = str.length(); 
-	for(int i = 0; i < length; i++) {
+	for(int i = 0; i < length; i++)
+	 {
 		str[i] = tolower(str[i]);
-	}
+	 }
 	return str; 	
 }
 
 
 int main() {
 
-	//Declare document used for word search	
+	//ifstream and ofstream to read and write
 	ifstream file("Text.txt");
 	ofstream fileout("Text2.txt");
-	string input; //Keyword to be searched
-	string word; //Current word in stream
+	//declare/initialize variables
+	
+	//word to search for
+	string input; 
+	//current word in text file
+	string word; 
+	//word to replace word in text file
 	string rword;
 	string temp;
-	int count=0; //Keeps track of the occurrences
-	bool pass = true; //Used for while loop
-	long childPID; //Stores child's PID
+
+	//Used to rename file
+	char oldname[] = "Text.txt";
+	char newname[] = "Text2.txt";
+	//number of occurences
+	int count=0; 
+	//Used for while loop
+	bool pass = true;
+	//stores the childPID
+	long childPID; 
+	int result;
 	
-	//Run a keyword search repeatedly until the user enter "!wq"
-	while(pass) {
-		//Prompt user to enter a word to search
+	//Repeat unless user enters !wq when promped to search
+	while(pass) 
+	{
+		//Prompt user to enter a word to serach for
 		cout << "\nEnter a word to search."<< endl;
 		cin >> input;
 		
-		cout<<"Enter replacement word." <<endl;
-		cin>>rword;
+		//cout<<"Enter replacement word." <<endl;
+		//cin>>rword;
 		
 
 		//If the user wants to quit enter "!wq"
-		if(input != "!wq") {
-			childPID = fork(); //Spawn a child process
-			if(childPID == 0) { //Child will execute entire if-block
-				while(file >> word) {
+		if(input != "!wq")
+		 {
+			//Prompt user to enter a replacemnt word
+			cout<<"Enter replacement word." <<endl;
+			cin>>rword;
+			//spawn child process. Child executes if blcok
+			childPID = fork(); 
+			if(childPID == 0) 
+			{ 
+				while(file >> word) 
+					{
 					word = toLowerCase(word);
 					input = toLowerCase(input); 
 					if(word == input){
 						count++;
+						word = rword;
 						
 					}
+					word += " ";
+					fileout<< word;
+					
 				}
 				//Print out the count
 				cout << "Number of occurences: " << count << endl;
 				
-				//Injected bug. Will continuously run unless user interferes.
-				if (count == 0) {
-					for(int i = 0; i < 1; i++) {
-						file.clear(); //Clear the buffer
-						file.seekg(0,file.beg); //Set cursor to the beginning of file
-						while(file >> word) {
-							//Do nothing
+				//deletes old file and renames new text file with the old one
+				remove(oldname);
+				result = rename(newname,oldname);
+
+
+
+
+				//Injected bug. 
+				if (count == 0) 
+				{
+					for(int i = 0; i < 1; i++) 
+					{
+						//clear buffer
+						file.clear(); 
+						file.seekg(0,file.beg); 
+						while(file >> word) 
+						{
+							
 						}
 						cout << ".";
 						i=-1;//Bug condition
 					}
 				}
-				//Terminate child after search was successful
+				//If search successful end
 				break;
 			} 
-
-			else if(childPID > 0) { //Parent process will execute entire else-if block
-				wait(0); //Waits for the child process to finish
-				//pass = false; //Set the condition to have parent exit while-loop
-				//break; //Parent will break out of this block
+			//else if is run by Parent block.
+			else if(childPID > 0)
+		        { 
+				//waits for child process to finish
+				wait(0); 
+				
 			}
-			//When child and parent is done, the file buffer and count will be resetted.
+			//When child and parent are both done the file buffer and count should be resetted.
 			count = 0;
-			file.clear(); //Clear the buffer
-			file.seekg(0,file.beg); //Set the cursor to beginning of file
+			//clear buffer and set the cursor to the beginning of the file
+			file.clear(); 
+			file.seekg(0,file.beg); 
 		}
 	
-		else { //The user entered "!wq" and while-loop will end
+		else
+	        { //User entered "!wq" 
 			pass = false;
 			break;
 		}  
